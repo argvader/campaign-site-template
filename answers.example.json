@@ -1,0 +1,21 @@
+{
+  "campaign_name": "Emberfall Chronicles",
+  "github_user": "your-user",
+  "repo_slug": "emberfall_chronicles",
+  "tagline": "A doomed frontier holds the last light against the coming dark.",
+  "game_system": "Dungeons & Dragons 5th Edition",
+  "genre_tone": "grim high fantasy, embers against the dark",
+  "accent_color": "#c8a54e",
+  "secondary_accent": "#c9622f",
+  "dark_bg": "#17130d",
+  "heading_font": "Cinzel",
+  "body_font": "Marcellus",
+  "mono_font": "Fira Mono",
+  "art_style_suffix": "cinematic dark fantasy illustration, ember-lit, painterly, dramatic rim light, no text or lettering.",
+  "dm_name": "Alex",
+  "roster": [
+    { "player": "Sam",  "character": "Kaelen Vos", "ancestry": "Human",    "class": "Paladin" },
+    { "player": "Jess", "character": "Nix",         "ancestry": "Tiefling", "class": "Warlock" },
+    { "player": "Ravi", "character": "Thornbeard",  "ancestry": "Dwarf",    "class": "Cleric"  }
+  ]
+}

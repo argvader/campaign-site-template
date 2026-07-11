@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git check-ignore *)",
+      "Bash(command -v ffmpeg)",
+      "Bash(command -v ffprobe)",
+      "Bash(ffprobe -v error -select_streams a -show_entries stream=index,codec_name,channels,sample_rate,bit_rate -of default=noprint_wrappers=1 session.mp4)",
+      "Bash(jq 'paths\\(scalars\\) as $p | $p | join\\(\".\"\\)' -c session.deepgram.json)",
+      "Bash(command -v jq)",
+      "Bash(jq --version)",
+      "Bash(echo \"jq: OK \\($\\(jq --version\\)\\)\")",
+      "Bash(command -v python3)",
+      "Bash(python3 -)",
+      "Bash(chmod +x bin/normalize-asset-names.sh)",
+      "Bash(bin/normalize-asset-names.sh --dry-run)",
+      "Bash(bin/normalize-asset-names.sh)",
+      "Bash(python3 -c ' *)",
+      "Bash(curl *)",
+      "Bash(cd *)"
+    ]
+  }
+}

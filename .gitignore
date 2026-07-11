@@ -1,0 +1,4 @@
+# Generator repo — Python cache only. Note: template/.gitignore is a *shipped*
+# file (it becomes the generated campaign's .gitignore), not this repo's.
+__pycache__/
+*.pyc
