@@ -18,8 +18,8 @@ A generated repo with:
   empty `wiki/{pcs,npcs,factions,locations}` and `sessions/` ready to fill).
 - `mkdocs.yml`, `requirements.txt`, `.github/workflows/deploy-docs.yml` — build +
   GitHub Pages deploy.
-- `.claude/skills/{summarize-session,build-world,publish-site}` — drive the pipeline
-  by name in Claude Code.
+- `.claude/skills/{build-speaker-mapping,translate-deepgram,summarize-session,build-world,publish-site}`
+  — drive the pipeline by name in Claude Code.
 - `SESSION_SUMMARIZER.md`, `WORLD_PAGE.md` — the master prompts (with your roster and
   setting baked in).
 - `bin/` (image generation + maintenance scripts), `hooks/wiki_images.py`,

@@ -151,10 +151,22 @@ Speaker labels for this campaign:
 
 {{speaker_labels_table}}
 
-Deepgram assigns speaker **numbers**, not names, and the numbering changes per
-recording — so listen to a few lines once to learn which number is whom, then
-build the mapping. This `jq` one-liner formats the JSON and substitutes names in
-one pass (edit the `map` to match this recording's speaker numbers):
+Deepgram assigns speaker **numbers**, not names, and **the numbering changes with
+every conversion** — speaker 0 is not the same person from one session to the
+next. So the mapping has to be rebuilt each time.
+
+**The easy way — two Claude Code skills:**
+
+- **"build speaker mapping"** inspects `session.deepgram.json` (who talks most,
+  who says which character's name, who answers when the DM calls a name), proposes
+  a number → person mapping with its reasoning, and lets you correct it. It saves
+  the result to `sessions-raw/<DATE>/speaker-map.json`.
+- **"translate deepgram"** then applies that map with the `jq` below and writes
+  `sessions-raw/<DATE>/transcript.md`.
+
+**The manual way.** Listen to a few lines to learn which number is whom, then run
+the `jq` yourself — it formats the JSON and substitutes names in one pass (edit the
+`map` to match this recording's speaker numbers):
 
 ```bash
 jq -r --argjson map '{{speaker_map_json}}' '
@@ -164,6 +176,10 @@ jq -r --argjson map '{{speaker_map_json}}' '
   | "\(($t/60|floor)|p2):\(($t%60)|p2) \($map[(.speaker|tostring)] // "Speaker \(.speaker)"): \(.transcript)"
 ' session.deepgram.json > transcript.md
 ```
+
+Any speaker number missing from the `map` falls through to a literal
+`Speaker <N>` label — a useful escape hatch when a voice can't be identified, but
+fix it before summarizing.
 
 ### 4. Drop the materials into `sessions-raw/<DATE>/`
 
@@ -206,15 +222,18 @@ bin/unpublish-session.sh <DATE>   # removes the session page, its image, nav + i
 It leaves `sessions-raw/<DATE>/` and the wiki untouched.
 
 **Shortcut — Claude Code skills.** This repo ships project-local skills so you can
-drive the content steps by name instead of opening the prompts. In Claude Code, just
-say:
+drive the steps by name instead of opening the prompts. In Claude Code, just say:
 
+- **"build speaker mapping"** → works out which Deepgram speaker number is whom and
+  saves `sessions-raw/<DATE>/speaker-map.json` (step 3).
+- **"translate deepgram"** → applies that map and writes `transcript.md` (step 3).
 - **"summarize latest session"** → runs the `SESSION_SUMMARIZER.md` process.
 - **"build world data"** → runs the `WORLD_PAGE.md` process (rebuilds the home page).
 - **"publish site"** → build-checks, commits, and pushes to `main` (deploys — step 7).
 
-They live in `.claude/skills/` and are available only in this project. The recording
-and transcription steps (OBS / Deepgram / `ffmpeg` / `jq`) stay manual — see above.
+They live in `.claude/skills/` and are available only in this project. Recording and
+transcription themselves (OBS / `ffmpeg` / the Deepgram request) stay manual — see
+above.
 
 ### 6. Preview locally (optional)
 

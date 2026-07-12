@@ -171,6 +171,12 @@ def _speaker_map_json(roster, dm_name):
     return "{\n" + ",\n".join(entries) + "\n}"
 
 
+def _character_names_json(roster):
+    """JSON array of PC names, for the build-speaker-mapping jq heuristics."""
+    names = [m.get("character", "") for m in roster if m.get("character")]
+    return "[" + ", ".join(f'"{n}"' for n in names) + "]"
+
+
 def build_context(answers):
     """Expand answers into the full {{token}} -> value map used for substitution."""
     ctx = {k: v for k, v in answers.items() if k != "roster"}
@@ -181,6 +187,8 @@ def build_context(answers):
     ctx["roster_table"] = _roster_table(roster)
     ctx["speaker_labels_table"] = _speaker_labels_table(roster, dm_name)
     ctx["speaker_map_json"] = _speaker_map_json(roster, dm_name)
+    ctx["character_names_json"] = _character_names_json(roster)
+    ctx["expected_speaker_count"] = str(1 + len(roster))
     return ctx
 
 
