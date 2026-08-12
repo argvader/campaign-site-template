@@ -22,8 +22,11 @@ A generated repo with:
   — drive the pipeline by name in Claude Code.
 - `SESSION_SUMMARIZER.md`, `WORLD_PAGE.md` — the master prompts (with your roster and
   setting baked in).
-- `bin/` (image generation + maintenance scripts), `hooks/wiki_images.py`,
-  `world/world.md` skeleton, `README.md`, `.env.example`.
+- `bin/` (async Deepgram transcription, image generation + maintenance scripts),
+  `hooks/wiki_images.py`, `world/world.md` skeleton, `README.md`, `.env.example`.
+- `DEEPGRAM_AWS.md` + `bin/deepgram_async.py` — the async transcription flow: audio
+  goes to a private S3 bucket, Deepgram `PUT`s the finished JSON straight back via a
+  presigned URL. No Lambda, no public endpoint, no sync gateway timeout on long files.
 
 ## Usage
 
@@ -51,16 +54,20 @@ target repo already exists (e.g. you created it on GitHub and cloned an empty re
 
 ### The interview
 
-`init.py` asks for: campaign name, GitHub user + repo slug (→ Pages URL), tagline,
-game system, genre/tone, three theme colors (accent, secondary accent, dark
-background), three fonts (heading/body/mono), an art-style suffix, the DM's name, and
-the player roster. Every question has a default; press Enter to accept it. Pass
-`--answers answers.json` to skip the interview — see `answers.example.json`.
+`init.py` asks for: campaign name, GitHub user + repo slug (→ Pages URL), an S3 bucket
+name for transcription, tagline, game system, genre/tone, three theme colors (accent,
+secondary accent, dark background), three fonts (heading/body/mono), an art-style
+suffix, the DM's name, and the player roster. Every question has a default; press Enter
+to accept it. Pass `--answers answers.json` to skip the interview — see
+`answers.example.json`.
 
 Colors drive `docs/stylesheets/extra.css` (shades are derived with CSS `color-mix`),
 the fonts drive the headings/body, and the art-style suffix is appended to every
 image prompt by `bin/gen-image.py`. The roster populates the Participants table and
-the Deepgram speaker-mapping in `SESSION_SUMMARIZER.md` + `README.md`.
+the Deepgram speaker-mapping in `SESSION_SUMMARIZER.md` + `README.md`. The S3 bucket
+(defaulted from the repo slug, hyphenated so it's DNS-safe) is baked into
+`bin/deepgram_async.py`, `DEEPGRAM_AWS.md` and the `translate-deepgram` skill; the
+bucket itself is yours to create — the generator only writes the name.
 
 ## After generating
 
@@ -69,3 +76,5 @@ the Deepgram speaker-mapping in `SESSION_SUMMARIZER.md` + `README.md`.
 3. `mkdocs serve` to preview.
 4. Fill in `world/world.md`, record your first session, and follow the generated
    `README.md`.
+5. For transcription, `pip install -r requirements-dev.txt` and create the private S3
+   bucket + least-privileged IAM user described in the generated `DEEPGRAM_AWS.md`.

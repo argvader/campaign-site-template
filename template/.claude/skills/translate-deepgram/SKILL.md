@@ -1,18 +1,75 @@
 ---
 name: translate-deepgram
 description: >-
-  Turn a session.deepgram.json into the transcript.md the {{campaign_name}} summarizer
-  expects, applying the speaker map from sessions-raw/<DATE>/speaker-map.json. Use when
-  the user says "translate deepgram", "convert the deepgram json", "make the transcript",
-  or similar. Requires a speaker map — run the build-speaker-mapping skill first.
+  Turn a session's audio into the transcript.md the {{campaign_name}} summarizer expects:
+  transcribe with Deepgram (async S3 flow) into session.deepgram.json if it's missing,
+  then apply the speaker map from sessions-raw/<DATE>/speaker-map.json. Use when the user
+  says "translate deepgram", "convert the deepgram json", "make the transcript", or
+  similar. The conversion step still requires a speaker map — build-speaker-mapping first.
 ---
 
-# Translate the Deepgram JSON into a transcript
+# Translate a session into a transcript
 
-Applies a confirmed speaker mapping to Deepgram's `utterances` and writes the
+Transcribes the session audio with Deepgram (if not already done), then applies a
+confirmed speaker mapping to Deepgram's `utterances` and writes the
 `MM:SS <Label>: <text>` transcript that **summarize-session** reads.
 
+The full pipeline has a **mandatory manual checkpoint** in the middle:
+
+```
+audio → [step 0: async transcribe] → session.deepgram.json
+      → [build-speaker-mapping]     → speaker-map.json   ← verify/adjust by hand
+      → [steps 1–3: convert]        → transcript.md
+```
+
+Step 0 produces the JSON, then **this skill stops.** Diarization numbers change with
+every transcription, so the speaker map has to be built against this session's fresh
+JSON and eyeballed by a human before any transcript is written. Do not carry on to
+the conversion in the same run as generating the JSON.
+
 ## Steps
+
+### 0. Ensure the Deepgram JSON exists (async transcription)
+
+Find the session: the date the user named, else the newest `sessions-raw/<DATE>/`.
+
+Check for a valid `sessions-raw/<DATE>/session.deepgram.json`:
+
+```bash
+jq empty sessions-raw/<DATE>/session.deepgram.json 2>/dev/null && echo "JSON present" || echo "need to transcribe"
+```
+
+**If it's present and valid, skip to step 1** — the map has presumably been built and
+verified since it was generated.
+
+If it's missing (or is a stale error like `{"err_code":"Gateway Timeout",...}`),
+transcribe the session audio with the async S3 flow. Load credentials, then run the
+script on the audio file in the dated folder (`.m4a`, `.flac`, `.wav`, or `.mp4`):
+
+```bash
+set -a; source .env; set +a
+python3 bin/deepgram_async.py sessions-raw/<DATE>/session.m4a
+```
+
+This uploads the audio to the private `{{s3_bucket}}` S3 bucket, has Deepgram
+`PUT` the finished transcript straight back to S3, and downloads it to
+`sessions-raw/<DATE>/session.deepgram.json`. It waits and polls until the result
+lands (a multi-hour file can take many minutes). Add `--diarize-model latest` only
+if `v1` is visibly mis-splitting speakers (see the README finding).
+
+Prerequisites for this step (see [`DEEPGRAM_AWS.md`](DEEPGRAM_AWS.md)):
+`pip install -r requirements-dev.txt`, and `.env` holding `DEEPGRAM_API_KEY` plus the
+`AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` / `AWS_DEFAULT_REGION` for the
+`{{s3_bucket_iam_user}}` IAM user. If those aren't set up, stop and point the user at
+`DEEPGRAM_AWS.md` rather than guessing.
+
+**Then STOP.** Once `session.deepgram.json` exists, hand off — do not continue to
+step 1 in this run:
+
+> Transcript is in `sessions-raw/<DATE>/session.deepgram.json`. Next, run the
+> **build-speaker-mapping** skill, then **verify and adjust
+> `sessions-raw/<DATE>/speaker-map.json` by hand**. Re-run **translate-deepgram**
+> once the map looks right and it will finish the conversion.
 
 ### 1. Load the speaker map
 

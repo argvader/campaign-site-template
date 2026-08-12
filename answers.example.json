@@ -2,6 +2,7 @@
   "campaign_name": "Emberfall Chronicles",
   "github_user": "your-user",
   "repo_slug": "emberfall_chronicles",
+  "s3_bucket": "emberfall-chronicles-deepgram",
   "tagline": "A doomed frontier holds the last light against the coming dark.",
   "game_system": "Dungeons & Dragons 5th Edition",
   "genre_tone": "grim high fantasy, embers against the dark",

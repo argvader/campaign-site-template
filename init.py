@@ -44,6 +44,7 @@ QUESTIONS = [
     ("campaign_name", "Campaign name", "My Campaign"),
     ("github_user", "GitHub username (for the Pages URL)", "your-user"),
     ("repo_slug", "Repo name (GitHub repo / URL slug)", None),  # default derived below
+    ("s3_bucket", "S3 bucket for Deepgram audio + results", None),  # default derived below
     ("tagline", "One-line tagline for the home page", "A tabletop campaign chronicle."),
     ("game_system", "Game system", "Dungeons & Dragons 5th Edition"),
     ("genre_tone", "Genre / tone (a few words)", "high fantasy"),
@@ -74,6 +75,12 @@ def _slugify(name):
             out.append("_")
             prev_us = True
     return "".join(out).strip("_") or "campaign"
+
+
+def _bucket_default(repo_slug):
+    """Repo slug -> a DNS-safe S3 bucket name (underscores are invalid in S3)."""
+    base = repo_slug.replace("_", "-").strip("-") or "campaign"
+    return f"{base}-deepgram"[:63].strip("-")
 
 
 def _ask(prompt, default):
@@ -117,6 +124,8 @@ def collect_answers(answers_path):
             answers[key] = str(data.get(key, default if default is not None else ""))
         if not answers.get("repo_slug"):
             answers["repo_slug"] = _slugify(answers["campaign_name"])
+        if not answers.get("s3_bucket"):
+            answers["s3_bucket"] = _bucket_default(answers["repo_slug"])
         answers["roster"] = data.get("roster", []) or []
         return answers
 
@@ -125,6 +134,8 @@ def collect_answers(answers_path):
     for key, prompt, default in QUESTIONS:
         if key == "repo_slug":
             default = _slugify(answers.get("campaign_name", "campaign"))
+        elif key == "s3_bucket":
+            default = _bucket_default(answers.get("repo_slug", "campaign"))
         answers[key] = _ask(prompt, default)
     answers["roster"] = _ask_roster()
     return answers
@@ -184,6 +195,7 @@ def build_context(answers):
     dm_name = answers.get("dm_name", "DM")
     ctx["site_url"] = f"https://{answers['github_user']}.github.io/{answers['repo_slug']}/"
     ctx["heading_font_url"] = answers["heading_font"].replace(" ", "+")
+    ctx["s3_bucket_iam_user"] = f"{answers['s3_bucket']}-bot"
     ctx["roster_table"] = _roster_table(roster)
     ctx["speaker_labels_table"] = _speaker_labels_table(roster, dm_name)
     ctx["speaker_map_json"] = _speaker_map_json(roster, dm_name)
@@ -274,10 +286,12 @@ def main():
         print(f"\nDone. Scaffolded into {out_dir} (template clone left untouched).")
         print("Next:")
 
-    print(f"  1. cp .env.example .env   # add DEEPGRAM_API_KEY + OPENAI_API_KEY")
+    print(f"  1. cp .env.example .env   # add DEEPGRAM_API_KEY, OPENAI_API_KEY and AWS keys")
     print(f"  2. pip install -r requirements.txt && mkdocs build --strict")
     print(f"  3. mkdocs serve           # preview at http://127.0.0.1:8000")
     print(f"  4. Fill in world/world.md, then record your first session (see README.md).")
+    print(f"  5. For transcription: pip install -r requirements-dev.txt and set up the")
+    print(f"     '{answers['s3_bucket']}' S3 bucket — see DEEPGRAM_AWS.md.")
 
 
 if __name__ == "__main__":

@@ -68,9 +68,10 @@ For each NPC encountered (new or returning), create or update their file:
 > the `hooks/wiki_images.py` build hook renders them at the top of the page.
 
 > **Canonical names come from the portrait art, not the transcript.** Deepgram
-> transcripts garble names (ASR mishears "Cerus" for a character whose art is
-> `seris.png`, "Nybora Tidewater" for `naivara-tidewoven.png`, "Patty" for
-> `paddy-greenfoot.png`). The player-dropped filenames in `docs/assets/pcs/` and
+> transcripts garble names — ASR writes what it hears, so a character whose art is
+> `seris.png` comes through as "Cerus", and invented surnames get split, merged, or
+> swapped for ordinary words that sound like them. The
+> player-dropped filenames in `docs/assets/pcs/` and
 > `docs/assets/npcs/` carry the **correct** spelling. So before finalizing any
 > PC/NPC name: list those folders and, when a character plausibly matches an existing
 > image filename (same person, phonetically or semantically), adopt the **image's**

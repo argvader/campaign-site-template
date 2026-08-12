@@ -15,8 +15,18 @@
       "Bash(bin/normalize-asset-names.sh --dry-run)",
       "Bash(bin/normalize-asset-names.sh)",
       "Bash(python3 -c ' *)",
+      "Bash(python3 *)",
       "Bash(curl *)",
-      "Bash(cd *)"
+      "Bash(cd *)",
+      "Bash(aws --version)",
+      "Bash(aws sts *)",
+      "Bash(aws configure *)",
+      "Bash(pip3 --version)",
+      "Bash(mkdocs build *)",
+      "Bash(git add *)",
+      "Bash(git push *)",
+      "WebSearch",
+      "WebFetch(domain:developers.deepgram.com)"
     ]
   }
 }
